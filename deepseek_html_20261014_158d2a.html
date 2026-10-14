@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Gestor Financeiro Pro</title>
+<link rel="icon" type="image/png" href="./planeta-terra.png">
+<link rel="apple-touch-icon" href="./planeta-terra.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F172A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root{
+  --bg:#F8FAFC; --surface:#FFFFFF; --surface-2:#F1F5F9;
+  --border:#E2E8F0; --border-strong:#CBD5E1;
+  --text-1:#0F172A; --text-2:#475569; --text-3:#94A3B8;
+  --primary:#10B981; --primary-dark:#059669; --primary-light:#ECFDF5;
+  --danger:#EF4444; --danger-light:#FEF2F2;
+  --warning:#F59E0B; --warning-light:#FFFBEB;
+  --info:#3B82F6; --info-light:#EFF6FF;
+  --violet:#8B5CF6; --violet-light:#F5F3FF;
+  --shadow-sm:0 1px 2px rgba(15,23,42,.06);
+  --shadow:0 4px 6px -1px rgba(15,23,42,.07),0 2px 4px -2px rgba(15,23,42,.05);
+  --shadow-lg:0 10px 24px -6px rgba(15,23,42,.12),0 4px 8px -4px rgba(15,23,42,.06);
+  --radius:14px; --radius-sm:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text-1);padding-bottom:80px;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+
+/* ---------- AUTH ---------- */
+.auth-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0F172A 0%,#1E293B 100%);z-index:500;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px}
+.auth-box{background:var(--surface);padding:36px 28px;border-radius:20px;box-shadow:var(--shadow-lg);width:100%;max-width:420px}
+.auth-box .logo-badge{width:56px;height:56px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#fff;margin:0 auto 20px;box-shadow:0 8px 20px rgba(16,185,129,.35)}
+.auth-box h1{font-size:1.4rem;font-weight:700;text-align:center;margin-bottom:6px;letter-spacing:-.02em}
+.auth-box .subtitle{text-align:center;color:var(--text-2);font-size:.9rem;margin-bottom:26px}
+.auth-box form{display:flex;flex-direction:column;gap:12px}
+.auth-toggle{margin-top:20px;color:var(--primary-dark);cursor:pointer;font-size:.88rem;text-align:center;font-weight:500}
+#installAppBtn{display:none;background:rgba(255,255,255,.1);color:#fff;padding:10px 20px;border-radius:24px;font-weight:600;margin-bottom:20px;border:1px solid rgba(255,255,255,.2);cursor:pointer;font-size:.85rem}
+
+/* ---------- HEADER ---------- */
+header{background:var(--surface);padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.header-title{display:flex;align-items:center;gap:12px}
+.header-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.95rem}
+.header-title h1{font-size:1rem;font-weight:700;letter-spacing:-.01em}
+.header-title .sub{font-size:.72rem;color:var(--text-3);font-weight:500;margin-top:1px}
+.logout-btn{width:36px;height:36px;background:var(--surface-2);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--text-2);cursor:pointer;transition:all .2s}
+.logout-btn:hover{background:var(--danger-light);color:var(--danger)}
+.container{padding:20px;max-width:900px;margin:0 auto;display:none}
+
+/* ---------- TABS ---------- */
+.tab-content{display:none}
+.tab-content.active{display:block;animation:fadeUp .25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.section-title{font-size:1.3rem;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+.section-sub{color:var(--text-2);font-size:.85rem;margin-bottom:20px}
+
+/* ---------- FORMS / INPUTS ---------- */
+select,input,textarea{width:100%;padding:12px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:.95rem;background:var(--surface);color:var(--text-1);outline:none;transition:all .15s;font-family:inherit}
+select:focus,input:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(16,185,129,.12)}
+input[type=date]{-webkit-appearance:none;appearance:none}
+label.field-label{display:block;font-size:.78rem;font-weight:600;color:var(--text-2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em}
+
+/* ---------- CARDS ---------- */
+.card{background:var(--surface);padding:20px;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border)}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.kpi{padding:16px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);position:relative;overflow:hidden}
+.kpi .kpi-label{font-size:.72rem;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.kpi .kpi-value{font-size:1.35rem;font-weight:700;letter-spacing:-.02em;line-height:1.15}
+.kpi .kpi-sub{font-size:.72rem;color:var(--text-3);margin-top:4px}
+.kpi.full{grid-column:1/-1}
+.kpi.primary{background:linear-gradient(135deg,#0F172A,#1E293B);color:#fff;border:none}
+.kpi.primary .kpi-label{color:rgba(255,255,255,.6)}
+.kpi.primary .kpi-value{color:#fff}
+.kpi.primary .kpi-sub{color:rgba(255,255,255,.5)}
+.kpi.success{border-left:4px solid var(--primary)}
+.kpi.danger{border-left:4px solid var(--danger)}
+.kpi.info{border-left:4px solid var(--info)}
+.kpi.violet{border-left:4px solid var(--violet)}
+
+/* ---------- BUTTONS ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;border-radius:var(--radius-sm);border:none;font-size:.92rem;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;letter-spacing:-.01em}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 4px 12px rgba(16,185,129,.25)}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-primary:active{transform:translateY(1px);box-shadow:0 2px 6px rgba(16,185,129,.25)}
+.btn-dark{background:var(--text-1);color:#fff}
+.btn-dark:hover{background:#1e293b}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#dc2626}
+.btn-outline{background:var(--surface);color:var(--text-1);border:1px solid var(--border-strong)}
+.btn-outline:hover{background:var(--surface-2)}
+.btn-ghost{background:transparent;color:var(--text-2);border:none;box-shadow:none}
+.btn-ghost:hover{background:var(--surface-2)}
+.btn:disabled{opacity:.55;cursor:not-allowed;transform:none!important}
+.btn-block{width:100%}
+.btn-icon{width:36px;height:36px;padding:0;border-radius:10px}
+.btn-sm{padding:9px 14px;font-size:.85rem}
+
+/* ---------- ACTION GRID ---------- */
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.action-grid .btn-pdf{grid-column:1/-1}
+
+/* ---------- FILTERS ---------- */
+.filter-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.filter-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.filter-grid-3{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end}
+.time-filters{display:flex;gap:8px;margin-bottom:16px;background:var(--surface-2);padding:4px;border-radius:12px}
+.time-btn{flex:1;padding:9px;border:none;border-radius:8px;background:transparent;color:var(--text-2);font-weight:600;font-size:.85rem;cursor:pointer;transition:all .15s;font-family:inherit}
+.time-btn.active{background:var(--surface);color:var(--text-1);box-shadow:var(--shadow-sm)}
+
+/* ---------- CHART ---------- */
+.chart-container{background:var(--surface);padding:20px;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:16px}
+.chart-container h3{font-size:.95rem;font-weight:700;margin-bottom:14px;color:var(--text-1);display:flex;align-items:center;gap:8px}
+.chart-wrapper{position:relative;height:260px;width:100%}
+
+/* ---------- LIST ITEMS ---------- */
+.list-item{background:var(--surface);padding:14px 16px;border-radius:var(--radius);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border);transition:all .15s}
+.list-item:hover{border-color:var(--border-strong)}
+.li-info h4{font-size:.92rem;font-weight:600;margin-bottom:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.li-info p{font-size:.78rem;color:var(--text-3);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.li-value{text-align:right;font-weight:700;font-size:.95rem;letter-spacing:-.01em}
+.li-value.positive{color:var(--primary-dark)}
+.li-value.negative{color:var(--danger)}
+.li-value.neutral{color:var(--violet)}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;font-size:.68rem;font-weight:600;letter-spacing:.01em}
+.tag-slate{background:var(--surface-2);color:var(--text-2)}
+.tag-green{background:var(--primary-light);color:var(--primary-dark)}
+.tag-red{background:var(--danger-light);color:var(--danger)}
+.tag-amber{background:var(--warning-light);color:#92400e}
+.tag-blue{background:var(--info-light);color:#1e40af}
+.tag-violet{background:var(--violet-light);color:#6d28d9}
+
+/* ---------- PARTNER DISTRIBUTION ---------- */
+.partner-row{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border);gap:12px}
+.partner-row:last-child{border-bottom:none}
+.partner-row .pr-name{font-weight:600;font-size:.9rem;display:flex;align-items:center;gap:6px}
+.partner-row .pr-pct{font-size:.75rem;color:var(--text-3);font-weight:500;margin-top:2px}
+.partner-row .pr-val{font-weight:700;font-size:.98rem;color:var(--primary-dark);white-space:nowrap}
+.partner-row .pr-val.neg{color:var(--danger)}
+
+/* ---------- PRODUTOS ---------- */
+.produto-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.produto-card .pc-main{flex:1;min-width:0}
+.produto-card .pc-nome{font-weight:700;font-size:.95rem;margin-bottom:6px;letter-spacing:-.01em}
+.produto-card .pc-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:.78rem;color:var(--text-2)}
+.produto-card .pc-meta b{color:var(--text-1);font-weight:600}
+.produto-card .pc-stock{font-weight:700;font-size:.95rem;padding:6px 12px;border-radius:10px;text-align:center;min-width:64px}
+.stock-ok{background:var(--primary-light);color:var(--primary-dark)}
+.stock-warn{background:var(--warning-light);color:#92400e}
+.stock-low{background:var(--danger-light);color:var(--danger)}
+
+/* ---------- MODAL ---------- */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);z-index:200;justify-content:center;align-items:flex-end;padding:0}
+.modal-overlay.show{display:flex;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;padding:24px 20px 28px;animation:slideUp .3s cubic-bezier(.2,.9,.3,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal h2{font-size:1.15rem;font-weight:700;margin-bottom:20px;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
+.modal .form-group{margin-bottom:14px}
+.modal-actions{display:flex;gap:10px;margin-top:20px}
+
+/* ---------- INFO BANNER ---------- */
+.info-banner{background:var(--info-light);color:#1e40af;padding:12px 14px;border-radius:10px;font-size:.82rem;margin-bottom:14px;border-left:3px solid var(--info);display:flex;gap:10px;align-items:flex-start;line-height:1.5}
+.warn-banner{background:var(--warning-light);color:#92400e;border-left-color:var(--warning)}
+.warn-banner i{color:var(--warning)}
+
+/* ---------- SALE PREVIEW ---------- */
+.sale-preview{background:linear-gradient(135deg,#F0FDF4,#ECFDF5);border:1px solid #BBF7D0;border-radius:12px;padding:14px;margin-bottom:14px}
+.sale-preview .sp-title{font-size:.72rem;font-weight:700;color:#065F46;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.sale-preview .sp-row{display:flex;justify-content:space-between;font-size:.85rem;padding:4px 0;color:#064E3B}
+.sale-preview .sp-row b{font-weight:700}
+
+/* ---------- CHECK LIST ---------- */
+.check-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:8px;font-size:.83rem;margin-bottom:6px}
+.check-row.ok{background:var(--primary-light);color:#065F46}
+.check-row.warn{background:var(--warning-light);color:#92400e}
+.check-row.err{background:var(--danger-light);color:#991b1b}
+
+/* ---------- BOTTOM NAV ---------- */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);display:none;justify-content:space-around;padding:10px 6px 8px;border-top:1px solid var(--border);z-index:100;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+.nav-item{display:flex;flex-direction:column;align-items:center;color:var(--text-3);font-size:.68rem;font-weight:600;text-decoration:none;cursor:pointer;padding:4px 12px;border-radius:8px;transition:all .15s;letter-spacing:.01em}
+.nav-item.active{color:var(--primary-dark)}
+.nav-item i{font-size:1.15rem;margin-bottom:3px}
+.nav-item.active i{transform:scale(1.05)}
+
+/* ---------- EMPTY STATE ---------- */
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-3)}
+.empty-state i{font-size:2.5rem;margin-bottom:12px;opacity:.4}
+.empty-state p{font-size:.88rem}
+
+/* ---------- DIVISOR ---------- */
+.divider{height:1px;background:var(--border);margin:16px 0}
+
+@media (min-width:640px){
+  .container{padding:24px}
+  .summary-grid{grid-template-columns:repeat(4,1fr)}
+  .kpi.full{grid-column:span 2}
+  .modal-overlay{align-items:center;padding:20px}
+  .modal{border-radius:20px;max-height:90vh}
+}
+</style>
+</head>
+<body>
+
+<!-- ========= AUTH ========= -->
+<div class="auth-screen" id="authScreen">
+  <button id="installAppBtn"><i class="fas fa-download"></i> Instalar Aplicativo</button>
+  <div class="auth-box">
+    <div class="logo-badge"><i class="fas fa-chart-line"></i></div>
+    <h1 id="authTitle">Acessar Sistema</h1>
+    <p class="subtitle" id="authSubtitle">Gestão financeira profissional</p>
+    <form id="formAuth">
+      <input type="email" id="authEmail" placeholder="Seu e-mail" required>
+      <input type="password" id="authPassword" placeholder="Sua senha" required>
+      <button type="submit" class="btn btn-primary btn-block" id="btnAuthAction">Entrar</button>
+    </form>
+    <p class="auth-toggle" id="btnToggleAuth" onclick="toggleAuthMode()">Não tem conta? Criar agora</p>
+  </div>
+</div>
+
+<!-- ========= HEADER ========= -->
+<header id="mainHeader" style="display:none">
+  <div class="header-title">
+    <div class="header-logo"><i class="fas fa-chart-line"></i></div>
+    <div>
+      <h1 id="appTitle">Carregando...</h1>
+      <div class="sub">Gestor Financeiro Pro</div>
+    </div>
+  </div>
+  <div class="logout-btn" onclick="fazerLogout()"><i class="fas fa-sign-out-alt"></i></div>
+</header>
+
+<!-- ========= CONTAINER ========= -->
+<div class="container" id="mainContainer">
+
+  <!-- ========== INÍCIO ========== -->
+  <div id="tab-inicio" class="tab-content active">
+    <div class="section-title">Visão Geral</div>
+    <p class="section-sub">Resumo das operações e desempenho financeiro</p>
+
+    <select id="unidadeFilter" style="margin-bottom:16px">
+      <option value="todas">🏢 Todas as Unidades</option>
+    </select>
+
+    <div class="action-grid">
+      <button class="btn btn-primary" onclick="abrirModalVenda()"><i class="fas fa-cash-register"></i> Nova Venda</button>
+      <button class="btn btn-outline" onclick="abrirModalGasto()"><i class="fas fa-receipt"></i> Novo Gasto</button>
+      <button class="btn btn-dark btn-pdf" onclick="gerarPDFTransacoes()"><i class="fas fa-file-pdf"></i> Relatório PDF</button>
+    </div>
+
+    <div class="time-filters">
+      <button class="time-btn" onclick="mudarTempo('semana', this)">Semana</button>
+      <button class="time-btn active" onclick="mudarTempo('mes', this)">Mês</button>
+      <button class="time-btn" onclick="mudarTempo('ano', this)">Ano</button>
+    </div>
+
+    <div class="filter-card">
+      <div class="filter-grid-3">
+        <div>
+          <label class="field-label">Data Início</label>
+          <input type="date" id="filtroDataInicio">
+        </div>
+        <div>
+          <label class="field-label">Data Fim</label>
+          <input type="date" id="filtroDataFim">
+        </div>
+        <button class="btn btn-outline btn-icon" onclick="limparFiltroData()" title="Limpar">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI -->
+    <div class="summary-grid">
+      <div class="kpi success">
+        <div class="kpi-label"><i class="fas fa-arrow-down"></i> Vendas</div>
+        <div class="kpi-value" id="vendasTotal" style="color:var(--primary-dark)">R$ 0,00</div>
+        <div class="kpi-sub" id="vendasQtd">0 vendas</div>
+      </div>
+      <div class="kpi danger">
+        <div class="kpi-label"><i class="fas fa-arrow-up"></i> Gastos</div>
+        <div class="kpi-value" id="gastosTotal" style="color:var(--danger)">R$ 0,00</div>
+        <div class="kpi-sub">Compras + despesas</div>
+      </div>
+      <div class="kpi info">
+        <div class="kpi-label"><i class="fas fa-chart-line"></i> Lucro</div>
+        <div class="kpi-value" id="lucroTotal" style="color:var(--info)">R$ 0,00</div>
+        <div class="kpi-sub">Margem: <b id="margemTexto">0%</b></div>
+      </div>
+      <div class="kpi violet">
+        <div class="kpi-label"><i class="fas fa-users"></i> Sócios</div>
+        <div class="kpi-value" id="lucroSocios" style="color:var(--violet)">R$ 0,00</div>
+        <div class="kpi-sub">Distribuir no período</div>
+      </div>
+      <div class="kpi primary full">
+        <div class="kpi-label"><i class="fas fa-vault"></i> Caixa da Empresa (Acumulado)</div>
+        <div class="kpi-value" id="caixaEmpresa">R$ 0,00</div>
+        <div class="kpi-sub" id="caixaSub">Margem operacional de 5% sobre o custo</div>
+      </div>
+    </div>
+
+    <div class="chart-container">
+      <h3><i class="fas fa-box" style="color:var(--primary)"></i> Produtos Mais Vendidos</h3>
+      <div class="chart-wrapper"><canvas id="pieChart"></canvas></div>
+    </div>
+
+    <div class="chart-container">
+      <h3><i class="fas fa-chart-bar" style="color:var(--info)"></i> Evolução de Vendas</h3>
+      <div class="chart-wrapper"><canvas id="barChart"></canvas></div>
+    </div>
+
+    <div class="chart-container">
+      <h3><i class="fas fa-handshake" style="color:var(--violet)"></i> Divisão do Lucro (Período)</h3>
+      <div id="listaDivisaoLucro"></div>
+    </div>
+  </div>
+
+  <!-- ========== LANÇAMENTOS ========== -->
+  <div id="tab-lancamentos" class="tab-content">
+    <div class="section-title">Lançamentos</div>
+    <p class="section-sub">Histórico completo de vendas, compras e despesas</p>
+
+    <div class="filter-card">
+      <div class="filter-grid-2" style="margin-bottom:12px">
+        <div><label class="field-label">Data Início</label><input type="date" id="filtroLanInicio"></div>
+        <div><label class="field-label">Data Fim</label><input type="date" id="filtroLanFim"></div>
+      </div>
+      <div class="filter-grid-2" style="margin-bottom:12px">
+        <select id="filtroLanUnidade"><option value="todas">Todas as Unidades</option></select>
+        <select id="filtroLanTipo">
+          <option value="todos">Todos os tipos</option>
+          <option value="venda">Vendas</option>
+          <option value="compra_estoque">Compras de Estoque</option>
+          <option value="gasto">Gastos Gerais</option>
+          <option value="pagamento_socio">Pagamentos a Sócios</option>
+        </select>
+      </div>
+      <div class="filter-grid-2">
+        <select id="filtroLanProduto"><option value="todos">Todos os Produtos</option></select>
+        <select id="filtroLanCliente"><option value="todos">Todos os Clientes</option></select>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <div class="kpi success">
+        <div class="kpi-label">Entradas</div>
+        <div class="kpi-value" id="entradasFiltro" style="font-size:1.15rem;color:var(--primary-dark)">R$ 0,00</div>
+      </div>
+      <div class="kpi danger">
+        <div class="kpi-label">Saídas</div>
+        <div class="kpi-value" id="saidasFiltro" style="font-size:1.15rem;color:var(--danger)">R$ 0,00</div>
+      </div>
+      <div class="kpi info full">
+        <div class="kpi-label">Resultado do Filtro</div>
+        <div class="kpi-value" id="resultadoFiltro" style="font-size:1.3rem;color:var(--info)">R$ 0,00</div>
+        <div class="kpi-sub">Margem: <b id="margemFiltro">0%</b></div>
+      </div>
+    </div>
+
+    <div id="listaTransacoes"></div>
+  </div>
+
+  <!-- ========== CLIENTES ========== -->
+  <div id="tab-clientes" class="tab-content">
+    <div class="section-title">Clientes & Fornecedores</div>
+    <p class="section-sub">Cadastro de contatos comerciais</p>
+
+    <button class="btn btn-primary btn-block" style="margin-bottom:16px" onclick="abrirModalCliente()">
+      <i class="fas fa-user-plus"></i> Novo Cadastro
+    </button>
+
+    <div class="filter-card">
+      <label class="field-label">Filtrar por tipo</label>
+      <div style="display:flex;gap:10px">
+        <select id="filtroCliTipo" style="flex:1">
+          <option value="todos">Todos</option>
+          <option value="cliente">Clientes</option>
+          <option value="fornecedor">Fornecedores</option>
+          <option value="ambos">Ambos</option>
+        </select>
+        <button class="btn btn-dark btn-sm" onclick="gerarPDFClientes()" style="white-space:nowrap">
+          <i class="fas fa-file-pdf"></i> PDF
+        </button>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <span style="font-size:.85rem;color:var(--text-2);font-weight:600">Total de cadastros</span>
+      <span class="tag tag-green" id="totalClientes" style="font-size:.8rem">0</span>
+    </div>
+    <div id="listaClientes"></div>
+  </div>
+
+  <!-- ========== AJUSTES ========== -->
+  <div id="tab-ajustes" class="tab-content">
+    <div class="section-title">Configurações</div>
+    <p class="section-sub">Empresa, unidades, produtos e sócios</p>
+
+    <!-- Empresa -->
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin-bottom:16px;font-size:.95rem;font-weight:700;display:flex;align-items:center;gap:8px">
+        <i class="fas fa-building" style="color:var(--primary)"></i> Dados da Empresa
+      </h3>
+      <form id="formAjustes">
+        <div class="form-group">
+          <label class="field-label">Nome da Empresa</label>
+          <input type="text" id="configNomeEmpresa" placeholder="Ex: Minha Empresa LTDA" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="btnSalvarAjustes">Salvar</button>
+      </form>
+    </div>
+
+    <!-- Unidades -->
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin-bottom:16px;font-size:.95rem;font-weight:700;display:flex;align-items:center;gap:8px">
+        <i class="fas fa-store" style="color:var(--info)"></i> Unidades / Setores
+      </h3>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <input type="text" id="novaUnidadeNome" placeholder="Nome da unidade">
+        <button class="btn btn-primary btn-sm" onclick="adicionarUnidade()" id="btnAddUnidade" style="white-space:nowrap">
+          <i class="fas fa-plus"></i>
+        </button>
+      </div>
+      <div id="listaUnidadesAjustes"></div>
+    </div>
+
+    <!-- Produtos -->
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin-bottom:6px;font-size:.95rem;font-weight:700;display:flex;align-items:center;gap:8px">
+        <i class="fas fa-box-open" style="color:var(--warning)"></i> Produtos
+      </h3>
+      <p style="font-size:.78rem;color:var(--text-2);margin-bottom:14px">
+        Cadastre produtos com preço de compra, venda e estoque inicial.
+      </p>
+      <button class="btn btn-primary btn-block" style="margin-bottom:14px" onclick="abrirModalProduto()">
+        <i class="fas fa-plus"></i> Novo Produto
+      </button>
+      <div id="listaProdutosAjustes"></div>
+    </div>
+
+    <!-- Sócios -->
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin-bottom:6px;font-size:.95rem;font-weight:700;display:flex;align-items:center;gap:8px">
+        <i class="fas fa-handshake" style="color:var(--violet)"></i> Sócios
+      </h3>
+      <div class="info-banner" style="background:var(--violet-light);color:#6d28d9;border-left-color:var(--violet)">
+        <i class="fas fa-info-circle"></i>
+        <div>Os sócios dividem <b>o lucro líquido de cada venda</b> (venda − custo×1,05). Os percentuais devem somar 100%.</div>
+      </div>
+      <button class="btn btn-primary btn-block" style="margin-bottom:14px" onclick="abrirModalSocio()">
+        <i class="fas fa-user-plus"></i> Novo Sócio
+      </button>
+      <div id="listaSociosAjustes"></div>
+      <div id="checagemSocios" style="margin-top:14px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========= BOTTOM NAV ========= -->
+<nav class="bottom-nav" id="mainNav">
+  <a class="nav-item active" data-target="tab-inicio"><i class="fas fa-chart-pie"></i> Início</a>
+  <a class="nav-item" data-target="tab-lancamentos"><i class="fas fa-list-alt"></i> Lançamentos</a>
+  <a class="nav-item" data-target="tab-clientes"><i class="fas fa-address-book"></i> Clientes</a>
+  <a class="nav-item" data-target="tab-ajustes"><i class="fas fa-cog"></i> Ajustes</a>
+</nav>
+
+<!-- ========= MODAL VENDA ========= -->
+<div class="modal-overlay" id="vendaModal">
+  <div class="modal">
+    <h2><i class="fas fa-cash-register" style="color:var(--primary)"></i> Nova Venda</h2>
+    <form id="formVenda">
+      <div class="form-group">
+        <label class="field-label">Produto</label>
+        <select id="vendaProduto" required></select>
+        <div id="vendaProdutoInfo" style="margin-top:8px;font-size:.78rem;color:var(--text-2)"></div>
+      </div>
+      <div class="form-group">
+        <label class="field-label">Quantidade</label>
+        <input type="number" id="vendaQtd" min="1" step="1" value="1" required>
+      </div>
+
+      <div class="sale-preview" id="vendaPreview" style="display:none">
+        <div class="sp-title"><i class="fas fa-calculator"></i> Resumo da Venda</div>
+        <div class="sp-row"><span>Total da venda</span><b id="prevTotal">R$ 0,00</b></div>
+        <div class="sp-row"><span>Empresa recebe (custo + 5%)</span><b id="prevEmpresa" style="color:#059669">R$ 0,00</b></div>
+        <div class="sp-row"><span>Lucro para sócios</span><b id="prevLucro" style="color:#6d28d9">R$ 0,00</b></div>
+      </div>
+
+      <div class="form-group">
+        <label class="field-label">Data da Venda</label>
+        <input type="date" id="vendaData" required>
+      </div>
+      <div class="form-group">
+        <label class="field-label">Unidade</label>
+        <select id="vendaUnidade" required></select>
+      </div>
+      <div class="form-group">
+        <label class="field-label">Cliente (opcional)</label>
+        <select id="vendaCliente"><option value="">— Sem vínculo —</option></select>
+      </div>
+      <div class="form-group">
+        <label class="field-label">Observação</label>
+        <input type="text" id="vendaObs" placeholder="Detalhe opcional">
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" style="flex:1" onclick="fecharModais()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" style="flex:1" id="btnSalvarVenda">Registrar Venda</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ========= MODAL GASTO ========= -->
+<div class="modal-overlay" id="gastoModal">
+  <div class="modal">
+    <h2><i class="fas fa-receipt" style="color:var(--danger)"></i> Novo Gasto</h2>
+    <form id="formGasto">
+      <div class="form-group">
+        <label class="field-label">Tipo de Gasto</label>
+        <select id="gastoTipo" required>
+          <option value="compra_estoque">📦 Compra de Estoque</option>
+          <option value="gasto">💸 Gasto Geral</option>
+          <option value="pagamento_socio">🤝 Pagamento a Sócio</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="field-label">Data</label>
+        <input type="date" id="gastoData" required>
+      </div>
+      <div class="form-group">
+        <label class="field-label">Unidade</label>
+        <select id="gastoUnidade" required></select>
+      </div>
+
+      <!-- Compra de estoque -->
+      <div id="grupoCompraEstoque" style="display:none">
+        <div class="form-group">
+          <label class="field-label">Produto</label>
+          <select id="gastoProduto"></select>
+        </div>
+        <div class="form-group">
+          <label class="field-label">Quantidade</label>
+          <input type="number" id="gastoQtd" min="1" step="1" value="1">
+        </div>
+        <div class="form-group">
+          <label class="field-label">Preço unitário de compra (R$)</label>
+          <input type="number" id="gastoPrecoUnit" min="0" step="0.01" placeholder="Ex: 20.00">
+        </div>
+        <div class="sale-preview" style="background:linear-gradient(135deg,#FEF2F2,#FEE2E2);border-color:#FECACA">
+          <div class="sp-title" style="color:#991b1b"><i class="fas fa-calculator"></i> Total da Compra</div>
+          <div class="sp-row" style="color:#7f1d1d"><span>Custo total</span><b id="prevCompraTotal">R$ 0,00</b></div>
+        </div>
+      </div>
+
+      <!-- Gasto geral -->
+      <div id="grupoGastoGeral" style="display:none">
+        <div class="form-group">
+          <label class="field-label">Descrição</label>
+          <input type="text" id="gastoDescricao" placeholder="Ex: Aluguel, água, energia...">
+        </div>
+        <div class="form-group">
+          <label class="field-label">Valor (R$)</label>
+          <input type="number" id="gastoValor" min="0" step="0.01" placeholder="Ex: 350.00">
+        </div>
+      </div>
+
+      <!-- Pagamento a sócio -->
+      <div id="grupoPagamentoSocio" style="display:none">
+        <div class="form-group">
+          <label class="field-label">Sócio</label>
+          <select id="gastoSocio"></select>
+        </div>
+        <div class="form-group">
+          <label class="field-label">Valor (R$)</label>
+          <input type="number" id="gastoValorSocio" min="0" step="0.01" placeholder="Ex: 1000.00">
+        </div>
+        <div class="info-banner warn-banner">
+          <i class="fas fa-info-circle"></i>
+          <div>Este valor <b>não afeta o lucro operacional</b>, é uma distribuição de lucro já acumulado.</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="field-label">Observação</label>
+        <input type="text" id="gastoObs" placeholder="Detalhe opcional">
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" style="flex:1" onclick="fecharModais()">Cancelar</button>
+        <button type="submit" class="btn btn-danger" style="flex:1" id="btnSalvarGasto">Registrar Gasto</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ========= MODAL PRODUTO ========= -->
+<div class="modal-overlay" id="produtoModal">
+  <div class="modal">
+    <h2><i class="fas fa-box-open" style="color:var(--warning)"></i> <span id="produtoModalTitle">Novo Produto</span></h2>
+    <form id="formProduto">
+      <input type="hidden" id="formProdutoId">
+      <div class="form-group">
+        <label class="field-label">Nome do Produto</label>
+        <input type="text" id="produtoNome" required placeholder="Ex: Camiseta Branca">
+      </div>
+      <div class="form-group">
+        <label class="field-label">Preço de Compra (R$)</label>
+        <input type="number" id="produtoPrecoCompra" min="0" step="0.01" required placeholder="Ex: 20.00">
+      </div>
+      <div class="form-group">
+        <label class="field-label">Preço de Venda (R$)</label>
+        <input type="number" id="produtoPrecoVenda" min="0" step="0.01" required placeholder="Ex: 50.00">
+      </div>
+      <div class="form-group">
+        <label class="field-label">Quantidade em Estoque</label>
+        <input type="number" id="produtoQtd" min="0" step="1" required value="0" placeholder="Ex: 100">
+      </div>
+      <div class="sale-preview" id="produtoPreview" style="display:none">
+        <div class="sp-title"><i class="fas fa-calculator"></i> Por unidade vendida</div>
+        <div class="sp-row"><span>Empresa recebe</span><b id="ppEmpresa" style="color:#059669">R$ 0,00</b></div>
+        <div class="sp-row"><span>Lucro para sócios</span><b id="ppLucro" style="color:#6d28d9">R$ 0,00</b></div>
+        <div class="sp-row"><span>Margem líquida</span><b id="ppMargem">0%</b></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" style="flex:1" onclick="fecharModais()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" style="flex:1" id="btnSalvarProduto">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ========= MODAL SOCIO ========= -->
+<div class="modal-overlay" id="socioModal">
+  <div class="modal">
+    <h2><i class="fas fa-handshake" style="color:var(--violet)"></i> <span id="socioModalTitle">Novo Sócio</span></h2>
+    <form id="formSocio">
+      <input type="hidden" id="formSocioId">
+      <div class="form-group">
+        <label class="field-label">Nome do Sócio</label>
+        <input type="text" id="socioNome" required placeholder="Ex: João Silva">
+      </div>
+      <div class="form-group">
+        <label class="field-label">Percentual do Lucro (%)</label>
+        <input type="number" id="socioPercentual" min="0" max="100" step="0.01" required placeholder="Ex: 25">
+      </div>
+      <div id="socioResumo" style="font-size:.82rem;color:var(--text-2);margin-bottom:10px"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" style="flex:1" onclick="fecharModais()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" style="flex:1" id="btnSalvarSocio">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ========= MODAL CLIENTE ========= -->
+<div class="modal-overlay" id="clienteModal">
+  <div class="modal">
+    <h2><i class="fas fa-user-circle" style="color:var(--info)"></i> <span id="clienteModalTitle">Novo Cadastro</span></h2>
+    <form id="formCliente">
+      <input type="hidden" id="formClienteId">
+      <div class="form-group">
+        <label class="field-label">Nome</label>
+        <input type="text" id="clienteNome" required placeholder="Ex: João da Silva">
+      </div>
+      <div class="form-group">
+        <label class="field-label">Tipo</label>
+        <select id="clienteTipo">
+          <option value="cliente">Cliente</option>
+          <option value="fornecedor">Fornecedor</option>
+          <option value="ambos">Cliente e Fornecedor</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="field-label">Telefone / Contato</label>
+        <input type="text" id="clienteTel" placeholder="(xx) xxxxx-xxxx">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" style="flex:1" onclick="fecharModais()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" style="flex:1" id="btnSalvarCliente">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import {
+  initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+  collection, addDoc, onSnapshot, query, doc, deleteDoc, updateDoc, setDoc, getDoc, where
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import {
+  getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+  onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCw7zCxKvTTe2JBO48tOUeo2MA8YPAe5L0",
+  authDomain: "financeiro-planeta.firebaseapp.com",
+  projectId: "financeiro-planeta",
+  storageBucket: "financeiro-planeta.firebasestorage.app",
+  messagingSenderId: "134842586388",
+  appId: "1:134842586388:web:21dac93e40ba946bad1e01"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+});
+const auth = getAuth(app);
+
+const TAXA_EMPRESA = 1.05; // 5% sobre o custo
+let usuarioLogado = null;
+let unsubscribeListeners = [];
+
+let dados = {
+  config: { nomeEmpresa: 'Gestor Financeiro Pro' },
+  unidades: [], produtos: [], socios: [], clientes: [], transacoes: []
+};
+
+let filtroTempoGlobal = 'mes';
+let pieChartInst, barChartInst;
+const coresHex = ['#10B981','#3B82F6','#F59E0B','#EF4444','#8B5CF6','#EC4899','#14B8A6','#F97316'];
+const fmt = v => (v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+
+function obterDataLocalAtual(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+/* ============ CHARTS ============ */
+function initCharts(){
+  pieChartInst = new Chart(document.getElementById('pieChart').getContext('2d'), {
+    type:'doughnut',
+    data:{labels:[],datasets:[{data:[],backgroundColor:coresHex,borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:12,font:{size:11,family:'Inter'}}}}}
+  });
+  barChartInst = new Chart(document.getElementById('barChart').getContext('2d'), {
+    type:'bar',
+    data:{labels:[],datasets:[{label:'Vendas R$',data:[],backgroundColor:'#10B981',borderRadius:6,maxBarThickness:40}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#E2E8F0'}},x:{grid:{display:false}}}}
+  });
+}
+
+/* ============ ROUTING ============ */
+history.replaceState({tab:'tab-inicio'},'','#tab-inicio');
+window.abrirAba = function(targetId, pushHistory=true){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.getAttribute('data-target')===targetId));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.toggle('active',t.id===targetId));
+  if(pushHistory) history.pushState({tab:targetId},'','#'+targetId);
+  if(targetId==='tab-clientes') renderClientes();
+  if(targetId==='tab-ajustes') renderAjustes();
+}
+document.querySelectorAll('.nav-item').forEach(item=>{
+  item.addEventListener('click',e=>{e.preventDefault();abrirAba(item.getAttribute('data-target'),true);});
+});
+window.addEventListener('popstate',(e)=>{
+  ['vendaModal','gastoModal','produtoModal','socioModal','clienteModal'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.classList.remove('show');
+  });
+  let target='tab-inicio';
+  if(e.state&&e.state.tab) target=e.state.tab;
+  else if(location.hash&&location.hash.startsWith('#tab-')) target=location.hash.substring(1);
+  abrirAba(target,false);
+});
+
+/* ============ AUTH ============ */
+let authMode='login';
+window.toggleAuthMode=function(){
+  authMode=authMode==='login'?'register':'login';
+  document.getElementById('authTitle').innerText = authMode==='login'?'Acessar Sistema':'Criar Nova Conta';
+  document.getElementById('authSubtitle').innerText = authMode==='login'?'Gestão financeira profissional':'Comece agora, é grátis';
+  document.getElementById('btnAuthAction').innerText = authMode==='login'?'Entrar':'Cadastrar';
+  document.getElementById('btnToggleAuth').innerText = authMode==='login'?'Não tem conta? Criar agora':'Já tem conta? Fazer Login';
+};
+
+document.getElementById('formAuth').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email = document.getElementById('authEmail').value.trim();
+  const pass = document.getElementById('authPassword').value;
+  const btn = document.getElementById('btnAuthAction');
+  const textoOriginal = btn.innerText;
+  btn.innerText = 'Aguarde...';
+  btn.disabled = true;
+
+  try {
+    if(authMode==='login') await signInWithEmailAndPassword(auth, email, pass);
+    else await createUserWithEmailAndPassword(auth, email, pass);
+  } catch (error) {
+    let msg = 'Erro ao autenticar.';
+    if(error.code==='auth/invalid-email') msg = 'E-mail inválido.';
+    else if(error.code==='auth/user-not-found') msg = 'Usuário não encontrado.';
+    else if(error.code==='auth/wrong-password'||error.code==='auth/invalid-credential') msg = 'E-mail ou senha incorretos.';
+    else if(error.code==='auth/email-already-in-use') msg = 'Este e-mail já está cadastrado.';
+    else if(error.code==='auth/weak-password') msg = 'Senha muito fraca (mínimo 6 caracteres).';
+    alert(msg);
+    btn.innerText = textoOriginal;
+    btn.disabled = false;
+  }
+});
+
+window.fazerLogout = function(){
+  if(confirm('Deseja sair da conta?')) signOut(auth);
+};
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    usuarioLogado = user;
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('mainHeader').style.display = 'flex';
+    document.getElementById('mainContainer').style.display = 'block';
+    document.getElementById('mainNav').style.display = 'flex';
+    iniciarSistemaPrivado(user.uid);
+  } else {
+    usuarioLogado = null;
+    unsubscribeListeners.forEach(u => u());
+    unsubscribeListeners = [];
+    dados = { config:{nomeEmpresa:'Gestor Financeiro Pro'}, unidades:[], produtos:[], socios:[], clientes:[], transacoes:[] };
+    document.getElementById('authScreen').style.display = 'flex';
+    document.getElementById('mainHeader').style.display = 'none';
+    document.getElementById('mainContainer').style.display = 'none';
+    document.getElementById('mainNav').style.display = 'none';
+    document.getElementById('btnAuthAction').innerText = 'Entrar';
+    document.getElementById('btnAuthAction').disabled = false;
+    document.getElementById('formAuth').reset();
+  }
+});
+
+/* ============ LISTENERS FIRESTORE ============ */
+function iniciarSistemaPrivado(uid){
+  unsubscribeListeners.push(onSnapshot(doc(db, "configuracoes", uid), (docSnap) => {
+    if (docSnap.exists()) {
+      dados.config = docSnap.data();
+      document.getElementById('appTitle').innerText = dados.config.nomeEmpresa || 'Gestor Financeiro Pro';
+      document.getElementById('configNomeEmpresa').value = dados.config.nomeEmpresa || '';
+    } else {
+      document.getElementById('appTitle').innerText = 'Gestor Financeiro Pro';
+    }
+  }));
+
+  unsubscribeListeners.push(onSnapshot(query(collection(db,"unidades"), where("uid","==",uid)),(snap)=>{
+    dados.unidades = []; snap.forEach(d=>dados.unidades.push({id:d.id,...d.data()}));
+    dados.unidades.sort((a,b)=>a.nome.localeCompare(b.nome));
+    renderUnidades(); renderAjustes(); atualizarDashboard(); atualizarAbaLancamentos();
+  }));
+
+  unsubscribeListeners.push(onSnapshot(query(collection(db,"produtos"), where("uid","==",uid)),(snap)=>{
+    dados.produtos = []; snap.forEach(d=>dados.produtos.push({id:d.id,...d.data()}));
+    dados.produtos.sort((a,b)=>a.nome.localeCompare(b.nome));
+    renderProdutosSelects(); renderAjustes(); atualizarDashboard();
+  }));
+
+  unsubscribeListeners.push(onSnapshot(query(collection(db,"socios"), where("uid","==",uid)),(snap)=>{
+    dados.socios = []; snap.forEach(d=>dados.socios.push({id:d.id,...d.data()}));
+    dados.socios.sort((a,b)=>a.nome.localeCompare(b.nome));
+    renderAjustes(); atualizarDashboard();
+  }));
+
+  unsubscribeListeners.push(onSnapshot(query(collection(db,"clientes"), where("uid","==",uid)),(snap)=>{
+    dados.clientes = []; snap.forEach(d=>dados.clientes.push({id:d.id,...d.data()}));
+    dados.clientes.sort((a,b)=>a.nome.localeCompare(b.nome));
+    renderClientes(); renderClientesSelects(); atualizarAbaLancamentos();
+  }));
+
+  unsubscribeListeners.push(onSnapshot(query(collection(db,"transacoes"), where("uid","==",uid)),(snap)=>{
+    dados.transacoes = []; snap.forEach(d=>dados.transacoes.push({id:d.id,...d.data()}));
+    dados.transacoes.sort((a,b)=>new Date(b.data)-new Date(a.data));
+    atualizarDashboard(); atualizarAbaLancamentos();
+  }));
+}
+
+/* ============ SELECTS / RENDER ============ */
+function renderUnidades(){
+  const opts = dados.unidades.map(u=>`<option value="${u.id}">${u.nome}</option>`).join('');
+  const unidadeFilter = document.getElementById('unidadeFilter');
+  const cur1 = unidadeFilter.value;
+  unidadeFilter.innerHTML = '<option value="todas">🏢 Todas as Unidades</option>'+opts;
+  if(cur1) unidadeFilter.value = cur1;
+
+  const filtroLanUnidade = document.getElementById('filtroLanUnidade');
+  const cur2 = filtroLanUnidade.value;
+  filtroLanUnidade.innerHTML = '<option value="todas">Todas as Unidades</option>'+opts;
+  if(cur2) filtroLanUnidade.value = cur2;
+
+  document.getElementById('vendaUnidade').innerHTML = opts || '<option value="">Cadastre uma unidade</option>';
+  document.getElementById('gastoUnidade').innerHTML = opts || '<option value="">Cadastre uma unidade</option>';
+}
+
+function renderProdutosSelects(){
+  const opts = dados.produtos.map(p=>{
+    const estoqueTag = p.quantidade > 0 ? ` (${p.quantidade} un)` : ' (sem estoque)';
+    return `<option value="${p.id}">${p.nome}${estoqueTag}</option>`;
+  }).join('');
+  document.getElementById('vendaProduto').innerHTML = opts || '<option value="">Cadastre um produto</option>';
+  document.getElementById('gastoProduto').innerHTML = opts || '<option value="">Cadastre um produto</option>';
+  document.getElementById('filtroLanProduto').innerHTML = '<option value="todos">Todos os Produtos</option>' +
+    dados.produtos.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
+}
+
+function renderClientesSelects(){
+  const optsCli = dados.clientes.filter(c=>c.tipo==='cliente'||c.tipo==='ambos')
+    .map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+  document.getElementById('vendaCliente').innerHTML = '<option value="">— Sem vínculo —</option>'+optsCli;
+  document.getElementById('filtroLanCliente').innerHTML = '<option value="todos">Todos os Clientes</option>' +
+    dados.clientes.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+  document.getElementById('gastoSocio').innerHTML = dados.socios.map(s=>`<option value="${s.id}">${s.nome}</option>`).join('') || '<option value="">Cadastre um sócio</option>';
+}
+
+/* ============ CÁLCULOS ============ */
+function filtrarPorTempo(lista){
+  const dataIni = document.getElementById('filtroDataInicio').value;
+  const dataFim = document.getElementById('filtroDataFim').value;
+  if(dataIni || dataFim){
+    return lista.filter(t=>{
+      if(dataIni && t.data < dataIni) return false;
+      if(dataFim && t.data > dataFim) return false;
+      return true;
+    });
+  }
+  const hoje=new Date(); hoje.setHours(0,0,0,0);
+  return lista.filter(t=>{
+    const d=new Date(t.data+'T00:00:00');
+    if(filtroTempoGlobal==='semana'){ const diff=Math.abs(hoje-d); const dias=Math.ceil(diff/(1000*60*60*24)); return dias<=7 && d<=hoje; }
+    else if(filtroTempoGlobal==='mes') return d.getMonth()===hoje.getMonth() && d.getFullYear()===hoje.getFullYear();
+    else if(filtroTempoGlobal==='ano') return d.getFullYear()===hoje.getFullYear();
+    return true;
+  });
+}
+
+function dadosPeriodo(){
+  const fUni = document.getElementById('unidadeFilter').value;
+  let base = fUni==='todas' ? dados.transacoes : dados.transacoes.filter(t=>t.unidade_id===fUni);
+  return filtrarPorTempo(base);
+}
+
+// Cálculos do lucro por período
+function calcularDivisao(){
+  const lista = dadosPeriodo();
+  const vendas = lista.filter(t=>t.tipo==='venda');
+  const compras = lista.filter(t=>t.tipo==='compra_estoque');
+  const gastosGerais = lista.filter(t=>t.tipo==='gasto');
+
+  let totalVendas = 0, totalEmpresa = 0, totalLucroSocios = 0;
+  vendas.forEach(v=>{
+    totalVendas += v.total || 0;
+    totalEmpresa += v.custoCom5 || 0;
+    totalLucroSocios += v.lucroSocios || 0;
+  });
+  const totalCompras = compras.reduce((a,c)=>a+(c.total||0),0);
+  const totalGastosGerais = gastosGerais.reduce((a,g)=>a+(g.valor||0),0);
+  const totalSaidasOperacionais = totalCompras + totalGastosGerais;
+
+  // Lucro operacional = vendas - compras - gastos gerais
+  const lucroOperacional = totalVendas - totalSaidasOperacionais;
+
+  // Divisão entre sócios (base: lucro das vendas)
+  const somaPct = dados.socios.reduce((a,s)=>a+(parseFloat(s.percentual)||0),0);
+  const porSocio = {};
+  dados.socios.forEach(s=>{
+    const pct = parseFloat(s.percentual)||0;
+    porSocio[s.id] = {
+      percentual: pct,
+      valor: totalLucroSocios * (pct/100),
+      total: totalLucroSocios * (pct/100)
+    };
+  });
+
+  return { totalVendas, totalEmpresa, totalLucroSocios, totalCompras, totalGastosGerais,
+    totalSaidasOperacionais, lucroOperacional, porSocio, somaPct };
+}
+
+// Caixa da empresa (acumulado, sem filtros)
+function calcularCaixaEmpresa(){
+  let caixa = 0;
+  dados.transacoes.forEach(t=>{
+    if(t.tipo === 'venda') caixa += t.custoCom5 || 0;
+    else if(t.tipo === 'compra_estoque') caixa -= t.total || 0;
+    else if(t.tipo === 'gasto') caixa -= t.valor || 0;
+    // Pagamento a sócio não afeta caixa da empresa (vem do pool de sócios)
+  });
+  return caixa;
+}
+
+// Saldo a pagar aos sócios (acumulado)
+function calcularSaldoSocios(){
+  let pool = 0;
+  dados.transacoes.forEach(t=>{
+    if(t.tipo === 'venda') pool += t.lucroSocios || 0;
+    else if(t.tipo === 'pagamento_socio') pool -= t.valor || 0;
+  });
+  return pool;
+}
+
+/* ============ DASHBOARD ============ */
+function atualizarDashboard(){
+  const lista = dadosPeriodo();
+  const vendas = lista.filter(t=>t.tipo==='venda');
+  const compras = lista.filter(t=>t.tipo==='compra_estoque');
+  const gastosGerais = lista.filter(t=>t.tipo==='gasto');
+
+  const totalVendas = vendas.reduce((a,v)=>a+(v.total||0),0);
+  const totalCompras = compras.reduce((a,c)=>a+(c.total||0),0);
+  const totalGastosGerais = gastosGerais.reduce((a,g)=>a+(g.valor||0),0);
+  const totalSaidas = totalCompras + totalGastosGerais;
+  const lucro = totalVendas - totalSaidas;
+  const margem = totalVendas > 0 ? (lucro/totalVendas*100) : 0;
+
+  const divisao = calcularDivisao();
+
+  document.getElementById('vendasTotal').innerText = fmt(totalVendas);
+  document.getElementById('vendasQtd').innerText = vendas.length + (vendas.length===1?' venda':' vendas');
+  document.getElementById('gastosTotal').innerText = fmt(totalSaidas);
+  document.getElementById('lucroTotal').innerText = fmt(lucro);
+  document.getElementById('margemTexto').innerText = margem.toFixed(1)+'%';
+  document.getElementById('lucroSocios').innerText = fmt(divisao.totalLucroSocios);
+
+  const caixa = calcularCaixaEmpresa();
+  const elCaixa = document.getElementById('caixaEmpresa');
+  elCaixa.innerText = fmt(caixa);
+  elCaixa.style.color = caixa >= 0 ? '#fff' : '#FCA5A5';
+
+  const saldoSocios = calcularSaldoSocios();
+  document.getElementById('caixaSub').innerText = `A pagar aos sócios: ${fmt(saldoSocios)}`;
+
+  // Pie chart - produtos mais vendidos
+  const mapaProd = {};
+  vendas.forEach(v=>{
+    const nome = v.produto_nome || 'Outros';
+    mapaProd[nome] = (mapaProd[nome]||0) + (v.quantidade||0);
+  });
+  pieChartInst.data.labels = Object.keys(mapaProd);
+  pieChartInst.data.datasets[0].data = Object.values(mapaProd);
+  pieChartInst.update();
+
+  // Bar chart - evolução de vendas
+  const agrup = {};
+  vendas.forEach(t=>{
+    const d=new Date(t.data+'T00:00:00');
+    let k;
+    if(filtroTempoGlobal==='semana') k=d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit'});
+    else if(filtroTempoGlobal==='mes') k=d.getDate().toString().padStart(2,'0');
+    else k=d.toLocaleDateString('pt-BR',{month:'short'});
+    agrup[k]=(agrup[k]||0)+(t.total||0);
+  });
+  const labels=Object.keys(agrup).sort();
+  barChartInst.data.labels=labels;
+  barChartInst.data.datasets[0].data=labels.map(l=>agrup[l]);
+  barChartInst.update();
+
+  renderDivisaoLucro();
+}
+
+function renderDivisaoLucro(){
+  const cont = document.getElementById('listaDivisaoLucro');
+  if(dados.socios.length===0){
+    cont.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>Nenhum sócio cadastrado ainda</p><p style="font-size:.78rem;margin-top:4px">Adicione em Ajustes → Sócios</p></div>';
+    return;
+  }
+  const { porSocio, totalLucroSocios, somaPct } = calcularDivisao();
+
+  let html = '';
+  if(Math.abs(somaPct-100) > 0.01){
+    html += `<div class="info-banner warn-banner">
+      <i class="fas fa-exclamation-triangle"></i>
+      <div>Os percentuais dos sócios somam <b>${somaPct.toFixed(2)}%</b>. Ajuste em Configurações para fechar 100%.</div>
+    </div>`;
+  }
+
+  html += dados.socios.map(s=>{
+    const info = porSocio[s.id];
+    return `<div class="partner-row">
+      <div>
+        <div class="pr-name">${s.nome}</div>
+        <div class="pr-pct">${info.percentual.toFixed(2)}% do lucro</div>
+      </div>
+      <div class="pr-val">${fmt(info.valor)}</div>
+    </div>`;
+  }).join('');
+
+  html += `<div class="partner-row" style="background:var(--surface-2);border-radius:10px;margin-top:8px">
+    <div class="pr-name">Lucro Distribuível do Período</div>
+    <div class="pr-val" style="color:var(--violet)">${fmt(totalLucroSocios)}</div>
+  </div>`;
+
+  cont.innerHTML = html;
+}
+
+window.mudarTempo=function(p,el){
+  filtroTempoGlobal=p;
+  document.querySelectorAll('.time-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('filtroDataInicio').value = '';
+  document.getElementById('filtroDataFim').value = '';
+  atualizarDashboard();
+};
+window.limparFiltroData=function(){
+  document.getElementById('filtroDataInicio').value = '';
+  document.getElementById('filtroDataFim').value = '';
+  atualizarDashboard();
+};
+['filtroDataInicio','filtroDataFim'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', atualizarDashboard);
+});
+
+/* ============ ABA LANÇAMENTOS ============ */
+function atualizarAbaLancamentos(){
+  const fIni=document.getElementById('filtroLanInicio').value;
+  const fFim=document.getElementById('filtroLanFim').value;
+  const fUni=document.getElementById('filtroLanUnidade').value;
+  const fTipo=document.getElementById('filtroLanTipo').value;
+  const fProd=document.getElementById('filtroLanProduto').value;
+  const fCli=document.getElementById('filtroLanCliente').value;
+
+  let lista = dados.transacoes.filter(t=>{
+    if(fUni!=='todas' && t.unidade_id!==fUni) return false;
+    if(fTipo!=='todos' && t.tipo!==fTipo) return false;
+    if(fIni && t.data<fIni) return false;
+    if(fFim && t.data>fFim) return false;
+    if(fProd!=='todos' && t.produto_id!==fProd) return false;
+    if(fCli!=='todos' && t.cliente_id!==fCli) return false;
+    return true;
+  });
+  lista.sort((a,b)=>new Date(b.data)-new Date(a.data));
+
+  let ent=0, sai=0;
+  lista.forEach(t=>{
+    if(t.tipo==='venda') ent += t.total||0;
+    else if(t.tipo==='compra_estoque') sai += t.total||0;
+    else if(t.tipo==='gasto') sai += t.valor||0;
+    // Pagamento a sócio não conta no resultado operacional
+  });
+  const resultado = ent - sai;
+  const margem = ent > 0 ? (resultado/ent*100) : 0;
+
+  document.getElementById('entradasFiltro').innerText = fmt(ent);
+  document.getElementById('saidasFiltro').innerText = fmt(sai);
+  document.getElementById('resultadoFiltro').innerText = fmt(resultado);
+  document.getElementById('margemFiltro').innerText = margem.toFixed(1)+'%';
+
+  const mapaUni = Object.fromEntries(dados.unidades.map(u=>[u.id,u.nome]));
+  const mapaCli = Object.fromEntries(dados.clientes.map(c=>[c.id,c.nome]));
+
+  let html='';
+  lista.forEach(t=>{
+    const dataF = new Date(t.data+'T00:00:00').toLocaleDateString('pt-BR');
+    const uni = mapaUni[t.unidade_id] || '';
+
+    if(t.tipo==='venda'){
+      const cli = t.cliente_id ? `<span class="tag tag-blue"><i class="fas fa-user"></i> ${mapaCli[t.cliente_id]||''}</span>` : '';
+      html += `<div class="list-item">
+        <div class="li-info">
+          <h4><span class="tag tag-green"><i class="fas fa-cash-register"></i> Venda</span> ${t.produto_nome||''}</h4>
+          <p>${dataF} • ${t.quantidade||0} un • <span class="tag tag-slate"><i class="fas fa-store"></i> ${uni}</span> ${cli}</p>
+        </div>
+        <div>
+          <div class="li-value positive">+ ${fmt(t.total)}</div>
+          <div style="font-size:.7rem;color:var(--text-3);text-align:right;margin-top:2px">Lucro: ${fmt(t.lucroSocios)}</div>
+          <button onclick="excluirTransacao('${t.id}')" class="btn btn-ghost btn-icon" style="margin-top:4px;margin-left:auto;color:var(--danger)"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>`;
+    } else if(t.tipo==='compra_estoque'){
+      html += `<div class="list-item">
+        <div class="li-info">
+          <h4><span class="tag tag-amber"><i class="fas fa-box"></i> Compra</span> ${t.produto_nome||''}</h4>
+          <p>${dataF} • ${t.quantidade||0} un • <span class="tag tag-slate">${uni}</span></p>
+        </div>
+        <div>
+          <div class="li-value negative">− ${fmt(t.total)}</div>
+          <button onclick="excluirTransacao('${t.id}')" class="btn btn-ghost btn-icon" style="margin-top:4px;margin-left:auto;color:var(--danger)"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>`;
+    } else if(t.tipo==='gasto'){
+      html += `<div class="list-item">
+        <div class="li-info">
+          <h4><span class="tag tag-red"><i class="fas fa-receipt"></i> Gasto</span> ${t.descricao||''}</h4>
+          <p>${dataF} • <span class="tag tag-slate">${uni}</span></p>
+        </div>
+        <div>
+          <div class="li-value negative">− ${fmt(t.valor)}</div>
+          <button onclick="excluirTransacao('${t.id}')" class="btn btn-ghost btn-icon" style="margin-top:4px;margin-left:auto;color:var(--danger)"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>`;
+    } else if(t.tipo==='pagamento_socio'){
+      html += `<div class="list-item">
+        <div class="li-info">
+          <h4><span class="tag tag-violet"><i class="fas fa-handshake"></i> Sócio</span> ${t.socio_nome||''}</h4>
+          <p>${dataF} • Distribuição de lucro</p>
+        </div>
+        <div>
+          <div class="li-value neutral">− ${fmt(t.valor)}</div>
+          <button onclick="excluirTransacao('${t.id}')" class="btn btn-ghost btn-icon" style="margin-top:4px;margin-left:auto;color:var(--danger)"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>`;
+    }
+  });
+  document.getElementById('listaTransacoes').innerHTML = html ||
+    '<div class="empty-state"><i class="fas fa-inbox"></i><p>Nenhum lançamento no período</p></div>';
+}
+
+['filtroLanInicio','filtroLanFim','filtroLanUnidade','filtroLanTipo','filtroLanProduto','filtroLanCliente']
+  .forEach(id=>document.getElementById(id).addEventListener('change', atualizarAbaLancamentos));
+
+window.excluirTransacao=async function(id){
+  const t = dados.transacoes.find(x=>x.id===id);
+  if(!t) return;
+  if(!confirm('Excluir este lançamento? O estoque não será revertido automaticamente.')) return;
+  try { await deleteDoc(doc(db, "transacoes", id)); }
+  catch(e){ alert('Erro: '+e.message); }
+};
+
+/* ============ MODAL VENDA ============ */
+window.abrirModalVenda=function(){
+  if(dados.produtos.length===0) return alert('Cadastre pelo menos um produto em Ajustes.');
+  if(dados.unidades.length===0) return alert('Cadastre pelo menos uma unidade em Ajustes.');
+  history.pushState({modal:true},'','#modal');
+  document.getElementById('vendaModal').classList.add('show');
+  document.getElementById('formVenda').reset();
+  document.getElementById('vendaData').value = obterDataLocalAtual();
+  atualizarPreviewVenda();
+};
+
+function atualizarPreviewVenda(){
+  const prodId = document.getElementById('vendaProduto').value;
+  const qtd = parseFloat(document.getElementById('vendaQtd').value)||0;
+  const prod = dados.produtos.find(p=>p.id===prodId);
+  const infoEl = document.getElementById('vendaProdutoInfo');
+  const preview = document.getElementById('vendaPreview');
+
+  if(!prod){
+    infoEl.innerHTML = '';
+    preview.style.display = 'none';
+    return;
+  }
+
+  infoEl.innerHTML = `<b>Estoque:</b> ${prod.quantidade} un • <b>Custo:</b> ${fmt(prod.precoCompra)} • <b>Venda:</b> ${fmt(prod.precoVenda)}`;
+
+  if(qtd <= 0){ preview.style.display='none'; return; }
+
+  const total = prod.precoVenda * qtd;
+  const custo = prod.precoCompra * qtd;
+  const custoCom5 = custo * TAXA_EMPRESA;
+  const lucro = total - custoCom5;
+
+  document.getElementById('prevTotal').innerText = fmt(total);
+  document.getElementById('prevEmpresa').innerText = fmt(custoCom5);
+  document.getElementById('prevLucro').innerText = fmt(lucro);
+  preview.style.display = 'block';
+
+  if(qtd > prod.quantidade){
+    infoEl.innerHTML += `<br><span style="color:var(--danger);font-weight:600"><i class="fas fa-exclamation-triangle"></i> Estoque insuficiente! Só há ${prod.quantidade} unidades.</span>`;
+  }
+}
+
+['vendaProduto','vendaQtd'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', atualizarPreviewVenda);
+  document.getElementById(id).addEventListener('change', atualizarPreviewVenda);
+});
+
+document.getElementById('formVenda').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const btn = document.getElementById('btnSalvarVenda');
+  const prodId = document.getElementById('vendaProduto').value;
+  const prod = dados.produtos.find(p=>p.id===prodId);
+  if(!prod) return alert('Selecione um produto.');
+
+  const qtd = parseInt(document.getElementById('vendaQtd').value)||0;
+  if(qtd <= 0) return alert('Quantidade inválida.');
+  if(qtd > prod.quantidade){
+    if(!confirm(`Estoque insuficiente (${prod.quantidade} disponíveis). Deseja continuar mesmo assim?`)) return;
+  }
+
+  btn.innerText='Salvando...'; btn.disabled=true;
+
+  const total = prod.precoVenda * qtd;
+  const custoTotal = prod.precoCompra * qtd;
+  const custoCom5 = custoTotal * TAXA_EMPRESA;
+  const lucroSocios = total - custoCom5;
+
+  const nova = {
+    tipo: 'venda',
+    data: document.getElementById('vendaData').value,
+    unidade_id: document.getElementById('vendaUnidade').value,
+    produto_id: prod.id,
+    produto_nome: prod.nome,
+    quantidade: qtd,
+    precoCompraUnit: prod.precoCompra,
+    precoVendaUnit: prod.precoVenda,
+    total, custoTotal, custoCom5, lucroSocios,
+    cliente_id: document.getElementById('vendaCliente').value || '',
+    obs: document.getElementById('vendaObs').value || '',
+    uid: usuarioLogado.uid
+  };
+
+  try {
+    await addDoc(collection(db, "transacoes"), nova);
+    // Baixa estoque
+    await updateDoc(doc(db, "produtos", prod.id), {
+      quantidade: Math.max(0, prod.quantidade - qtd)
+    });
+    fecharModais();
+  } catch(err){
+    alert('Erro ao salvar: '+err.message);
+  } finally {
+    btn.innerText='Registrar Venda'; btn.disabled=false;
+  }
+});
+
+/* ============ MODAL GASTO ============ */
+window.abrirModalGasto=function(){
+  if(dados.unidades.length===0) return alert('Cadastre uma unidade primeiro.');
+  history.pushState({modal:true},'','#modal');
+  document.getElementById('gastoModal').classList.add('show');
+  document.getElementById('formGasto').reset();
+  document.getElementById('gastoData').value = obterDataLocalAtual();
+  document.getElementById('gastoTipo').value = 'compra_estoque';
+  atualizarTipoGasto();
+};
+
+function atualizarTipoGasto(){
+  const tipo = document.getElementById('gastoTipo').value;
+  document.getElementById('grupoCompraEstoque').style.display = tipo==='compra_estoque' ? 'block':'none';
+  document.getElementById('grupoGastoGeral').style.display = tipo==='gasto' ? 'block':'none';
+  document.getElementById('grupoPagamentoSocio').style.display = tipo==='pagamento_socio' ? 'block':'none';
+  atualizarPreviewCompra();
+}
+
+function atualizarPreviewCompra(){
+  const prodId = document.getElementById('gastoProduto').value;
+  const qtd = parseFloat(document.getElementById('gastoQtd').value)||0;
+  const preco = parseFloat(document.getElementById('gastoPrecoUnit').value)||0;
+  const prod = dados.produtos.find(p=>p.id===prodId);
+  if(prod && !document.getElementById('gastoPrecoUnit').value){
+    document.getElementById('gastoPrecoUnit').value = prod.precoCompra;
+  }
+  const total = qtd * (parseFloat(document.getElementById('gastoPrecoUnit').value)||0);
+  document.getElementById('prevCompraTotal').innerText = fmt(total);
+}
+
+document.getElementById('gastoTipo').addEventListener('change', atualizarTipoGasto);
+['gastoProduto','gastoQtd','gastoPrecoUnit'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', atualizarPreviewCompra);
+  document.getElementById(id).addEventListener('change', atualizarPreviewCompra);
+});
+
+document.getElementById('formGasto').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const btn = document.getElementById('btnSalvarGasto');
+  const tipo = document.getElementById('gastoTipo').value;
+  const data = document.getElementById('gastoData').value;
+  const unidade_id = document.getElementById('gastoUnidade').value;
+  const obs = document.getElementById('gastoObs').value || '';
+  btn.innerText='Salvando...'; btn.disabled=true;
+
+  try {
+    if(tipo === 'compra_estoque'){
+      const prodId = document.getElementById('gastoProduto').value;
+      const prod = dados.produtos.find(p=>p.id===prodId);
+      if(!prod) throw new Error('Selecione um produto');
+      const qtd = parseInt(document.getElementById('gastoQtd').value)||0;
+      const preco = parseFloat(document.getElementById('gastoPrecoUnit').value)||0;
+      if(qtd<=0 || preco<=0) throw new Error('Quantidade e preço válidos são obrigatórios');
+
+      const total = qtd * preco;
+      await addDoc(collection(db, "transacoes"), {
+        tipo: 'compra_estoque',
+        data, unidade_id, produto_id: prod.id, produto_nome: prod.nome,
+        quantidade: qtd, precoCompraUnit: preco, total, obs,
+        uid: usuarioLogado.uid
+      });
+      // Atualiza estoque e custo médio? Vou usar só somar quantidade e atualizar preço de compra para o último
+      await updateDoc(doc(db, "produtos", prod.id), {
+        quantidade: prod.quantidade + qtd,
+        precoCompra: preco // atualiza para o último preço de compra
+      });
+    } else if(tipo === 'gasto'){
+      const descricao = document.getElementById('gastoDescricao').value.trim();
+      const valor = parseFloat(document.getElementById('gastoValor').value)||0;
+      if(!descricao || valor<=0) throw new Error('Descrição e valor são obrigatórios');
+      await addDoc(collection(db, "transacoes"), {
+        tipo: 'gasto', data, unidade_id, descricao, valor, obs,
+        uid: usuarioLogado.uid
+      });
+    } else if(tipo === 'pagamento_socio'){
+      const socioId = document.getElementById('gastoSocio').value;
+      const socio = dados.socios.find(s=>s.id===socioId);
+      const valor = parseFloat(document.getElementById('gastoValorSocio').value)||0;
+      if(!socio) throw new Error('Selecione um sócio');
+      if(valor<=0) throw new Error('Valor inválido');
+      await addDoc(collection(db, "transacoes"), {
+        tipo: 'pagamento_socio', data, unidade_id,
+        socio_id: socio.id, socio_nome: socio.nome, valor, obs,
+        uid: usuarioLogado.uid
+      });
+    }
+    fecharModais();
+  } catch(err){
+    alert('Erro: '+err.message);
+  } finally {
+    btn.innerText='Registrar Gasto'; btn.disabled=false;
+  }
+});
+
+/* ============ MODAL PRODUTO ============ */
+window.abrirModalProduto=function(){
+  history.pushState({modal:true},'','#modal');
+  document.getElementById('produtoModal').classList.add('show');
+  document.getElementById('produtoModalTitle').innerText = 'Novo Produto';
+  document.getElementById('formProduto').reset();
+  document.getElementById('formProdutoId').value = '';
+  document.getElementById('produtoPreview').style.display='none';
+};
+
+function atualizarPreviewProduto(){
+  const pc = parseFloat(document.getElementById('produtoPrecoCompra').value)||0;
+  const pv = parseFloat(document.getElementById('produtoPrecoVenda').value)||0;
+  if(pc<=0 || pv<=0){ document.getElementById('produtoPreview').style.display='none'; return; }
+  const empresa = pc * TAXA_EMPRESA;
+  const lucro = pv - empresa;
+  const margem = pv>0 ? (lucro/pv*100) : 0;
+  document.getElementById('ppEmpresa').innerText = fmt(empresa);
+  document.getElementById('ppLucro').innerText = fmt(lucro);
+  document.getElementById('ppMargem').innerText = margem.toFixed(1)+'%';
+  document.getElementById('produtoPreview').style.display='block';
+}
+
+['produtoPrecoCompra','produtoPrecoVenda'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', atualizarPreviewProduto);
+});
+
+document.getElementById('formProduto').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const btn = document.getElementById('btnSalvarProduto');
+  const id = document.getElementById('formProdutoId').value;
+  const obj = {
+    nome: document.getElementById('produtoNome').value.trim(),
+    precoCompra: parseFloat(document.getElementById('produtoPrecoCompra').value)||0,
+    precoVenda: parseFloat(document.getElementById('produtoPrecoVenda').value)||0,
+    quantidade: parseInt(document.getElementById('produtoQtd').value)||0,
+    uid: usuarioLogado.uid
+  };
+  btn.innerText='Salvando...'; btn.disabled=true;
+  try {
+    if(id) await updateDoc(doc(db,"produtos",id), obj);
+    else await addDoc(collection(db,"produtos"), obj);
+    fecharModais();
+  } catch(err){ alert('Erro: '+err.message); }
+  finally { btn.innerText='Salvar'; btn.disabled=false; }
+});
+
+window.editarProduto=function(id){
+  const p = dados.produtos.find(x=>x.id===id);
+  if(!p) return;
+  history.pushState({modal:true},'','#modal');
+  document.getElementById('produtoModal').classList.add('show');
+  document.getElementById('produtoModalTitle').innerText='Editar Produto';
+  document.getElementById('formProdutoId').value=p.id;
+  document.getElementById('produtoNome').value=p.nome;
+  document.getElementById('produtoPrecoCompra').value=p.precoCompra;
+  document.getElementById('produtoPrecoVenda').value=p.precoVenda;
+  document.getElementById('produtoQtd').value=p.quantidade;
+  atualizarPreviewProduto();
+};
+
+window.excluirProduto=async function(id){
+  if(confirm('Excluir este produto? Lançamentos existentes não serão afetados.')){
+    try { await deleteDoc(doc(db,"produtos",id)); } catch(e){ alert('Erro: '+e.message); }
+  }
+};
+
+/* ============ MODAL SÓCIO ============ */
+window.abrirModalSocio=function(){
+  history.pushState({modal:true},'','#modal');
+  document.getElementById('socioModal').classList.add('show');
+  document.getElementById('socioModalTitle').innerText='Novo Sócio';
+  document.getElementById('formSocio').reset();
+  document.getElementById('formSocioId').value='';
+  atualizarResumoSocio();
+};
+
+window.editarSocio=function(id){
+  const s = dados.socios.find(x=>x.id===id);
+  if(!s) return;
+  history.pushState({modal:true},'','#modal');
+  document.getElementById('socioModal').classList.add('show');
+  document.getElementById('socioModalTitle').innerText='Editar Sócio';
+  document.getElementById('formSocioId').value=s.id;
+  document.getElementById('socioNome').value=s.nome;
+  document.getElementById('socioPercentual').value=s.percentual;
+  atualizarResumoSocio();
+};
+
+function atualizarResumoSocio(){
+  const idAtual = document.getElementById('formSocioId').value;
+  const meu = parseFloat(document.getElementById('socioPercentual').value)||0;
+  const outros = dados.socios.filter(s=>s.id!==idAtual).reduce((a,s)=>a+(parseFloat(s.percentual)||0),0);
+  const total = outros + meu;
+
+  let cor, msg;
+  if(Math.abs(total-100)<0.01){ cor='#065F46'; msg='✓ Fechado em 100%'; }
+  else if(total>100){ cor='#991b1b'; msg=`✕ Excedeu ${(total-100).toFixed(2)}%`; }
+  else { cor='#92400e'; msg=`! Faltam ${(100-total).toFixed(2)}%`; }
+
+  document.getElementById('socioResumo').innerHTML = `
+    <div style="padding:10px 12px;border-radius:8px;background:var(--surface-2)">
+      <div style="color:${cor};font-weight:600">${msg}</div>
+      <div style="font-size:.75rem;color:var(--text-3);margin-top:4px">
+        Outros sócios: <b>${outros.toFixed(2)}%</b> + Este: <b>${meu.toFixed(2)}%</b> = <b>${total.toFixed(2)}%</b>
+      </div>
+    </div>`;
+}
+document.getElementById('socioPercentual').addEventListener('input', atualizarResumoSocio);
+
+document.getElementById('formSocio').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const btn = document.getElementById('btnSalvarSocio');
+  const id = document.getElementById('formSocioId').value;
+  const nome = document.getElementById('socioNome').value.trim();
+  const percentual = parseFloat(document.getElementById('socioPercentual').value)||0;
+
+  const outros = dados.socios.filter(s=>s.id!==id).reduce((a,s)=>a+(parseFloat(s.percentual)||0),0);
+  if(outros + percentual > 100.01){
+    return alert(`A soma passaria de 100%. Outros sócios já usam ${outros.toFixed(2)}%.`);
+  }
+
+  btn.innerText='Salvando...'; btn.disabled=true;
+  const obj = { nome, percentual, uid: usuarioLogado.uid };
+  try {
+    if(id) await updateDoc(doc(db,"socios",id), obj);
+    else await addDoc(collection(db,"socios"), obj);
+    fecharModais();
+  } catch(err){ alert('Erro: '+err.message); }
+  finally { btn.innerText='Salvar'; btn.disabled=false; }
+});
+
+window.excluirSocio=async function(id){
+  if(confirm('Remover este sócio?')){
+    try { await deleteDoc(doc(db,"socios",id)); } catch(e){ alert('Erro: '+e.message); }
+  }
+};
+
+/* ============ AJUSTES RENDER ============ */
+function renderAjustes(){
+  // Unidades
+  document.getElementById('listaUnidadesAjustes').innerHTML = dados.unidades.map(u=>`
+    <div class="list-item" style="padding:10px 14px;margin-bottom:6px">
+      <span style="font-weight:500">${u.nome}</span>
+      <button onclick="excluirUnidade('${u.id}')" class="btn btn-ghost btn-icon" style="color:var(--danger)"><i class="fas fa-trash"></i></button>
+    </div>`).join('') || '<p style="font-size:.85rem;color:var(--text-3);text-align:center;padding:10px">Nenhuma unidade</p>';
+
+  // Produtos
+  document.getElementById('listaProdutosAjustes').innerHTML = dados.produtos.map(p=>{
+    let stockClass = 'stock-ok';
+    if(p.quantidade === 0) stockClass = 'stock-low';
+    else if(p.quantidade < 10) stockClass = 'stock-warn';
+    return `<div class="produto-card">
+      <div class="pc-main">
+        <div class="pc-nome">${p.nome}</div>
+        <div class="pc-meta">
+          <span>Compra: <b>${fmt(p.precoCompra)}</b></span>
+          <span>Venda: <b>${fmt(p.precoVenda)}</b></span>
+        </div>
+      </div>
+      <div class="pc-stock ${stockClass}">${p.quantidade}<br><span style="font-size:.65rem;font-weight:600;opacity:.8">un</span></div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <button onclick="editarProduto('${p.id}')" class="btn btn-ghost btn-icon" style="color:var(--primary-dark)"><i class="fas fa-edit"></i></button>
+        <button onclick="excluirProduto('${p.id}')" class="btn btn-ghost btn-icon" style="color:var(--danger)"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty-state" style="padding:20px"><i class="fas fa-box-open"></i><p style="font-size:.85rem">Nenhum produto cadastrado</p></div>';
+
+  // Sócios
+  document.getElementById('listaSociosAjustes').innerHTML = dados.socios.map(s=>`
+    <div class="list-item" style="padding:12px 14px">
+      <div>
+        <div style="font-weight:600">${s.nome}</div>
+        <div style="font-size:.78rem;color:var(--text-3)">${(parseFloat(s.percentual)||0).toFixed(2)}% do lucro</div>
+      </div>
+      <div style="display:flex;gap:4px">
+        <button onclick="editarSocio('${s.id}')" class="btn btn-ghost btn-icon" style="color:var(--primary-dark)"><i class="fas fa-edit"></i></button>
+        <button onclick="excluirSocio('${s.id}')" class="btn btn-ghost btn-icon" style="color:var(--danger)"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>`).join('') || '<div class="empty-state" style="padding:20px"><i class="fas fa-users"></i><p style="font-size:.85rem">Nenhum sócio cadastrado</p></div>';
+
+  // Checagem sócios
+  const soma = dados.socios.reduce((a,s)=>a+(parseFloat(s.percentual)||0),0);
+  let cls = 'ok', msg = `${soma.toFixed(2)}% distribuído`;
+  if(dados.socios.length === 0){ cls='warn'; msg='Sem sócios cadastrados'; }
+  else if(Math.abs(soma-100)>0.01){ cls = soma>100?'err':'warn'; msg += soma>100?' — excedeu 100%':` — faltam ${(100-soma).toFixed(2)}%`; }
+  document.getElementById('checagemSocios').innerHTML = `<div class="check-row ${cls}">
+    <span><b>Total dos sócios</b></span><span>${msg}</span>
+  </div>`;
+}
+
+window.adicionarUnidade=async function(){
+  const i=document.getElementById('novaUnidadeNome');
+  if(!i.value.trim()) return;
+  const btn = document.getElementById('btnAddUnidade');
+  btn.disabled = true;
+  try {
+    await addDoc(collection(db,"unidades"), { nome:i.value.trim(), uid:usuarioLogado.uid });
+    i.value='';
+  } catch(e){ alert('Erro: '+e.message); }
+  finally { btn.disabled = false; }
+};
+window.excluirUnidade=async function(id){
+  if(confirm('Excluir unidade?')){
+    try { await deleteDoc(doc(db,"unidades",id)); } catch(e){ alert('Erro: '+e.message); }
+  }
+};
+
+document.getElementById('formAjustes').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const btn = document.getElementById('btnSalvarAjustes');
+  btn.innerText='Salvando...'; btn.disabled=true;
+  try {
+    await setDoc(doc(db,"configuracoes",usuarioLogado.uid),
+      { nomeEmpresa: document.getElementById('configNomeEmpresa').value },
+      { merge: true });
+    alert('Salvo com sucesso!');
+  } catch(e){ alert('Erro: '+e.message); }
+  finally { btn.innerText='Salvar'; btn.disabled=false; }
+});
+
+/* ============ CLIENTES ============ */
+function renderClientes(){
+  const fTipo = document.getElementById('filtroCliTipo').value;
+  let lista = dados.clientes;
+  if(fTipo!=='todos') lista = lista.filter(c=>c.tipo===fTipo);
+  lista.sort((a,b)=>a.nome.localeCompare(b.nome));
+
+  document.getElementById('totalClientes').innerText = lista.length;
+
+  const badge = t => {
+    if(t==='cliente') return '<span class="tag tag-blue">Cliente</span>';
+    if(t==='fornecedor') return '<span class="tag tag-red">Fornecedor</span>';
+    return '<span class="tag tag-amber">Ambos</span>';
+  };
+
+  document.getElementById('listaClientes').innerHTML = lista.map(c=>`
+    <div class="list-item">
+      <div class="li-info">
+        <h4>${c.nome} ${badge(c.tipo)}</h4>
+        <p>${c.telefone || 'Sem telefone'}</p>
+      </div>
+      <div style="display:flex;gap:4px">
+        <button onclick="editarCliente('${c.id}')" class="btn btn-ghost btn-icon" style="color:var(--primary-dark)"><i class="fas fa-edit"></i></button>
+        <button onclick="excluirCliente('${c.id}')" class="btn btn-ghost btn-icon" style="color:var(--danger)"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>`).join('') || '<div class="empty-state"><i class="fas fa-user-friends"></i><p>Nenhum cadastro ainda</p></div>';
+}
+document.getElementById('filtroCliTipo').addEventListener('change', renderClientes);
+
+window.abrirModalCliente=function(){
+  history.pushState({modal:true},'','#modal');
+  document.getElementById('clienteModal').classList.add('show');
+  document.getElementById('clienteModalTitle').innerText='Novo Cadastro';
+  document.getElementById('formCliente').reset();
+  document.getElementById('formClienteId').value='';
+};
+window.editarCliente=function(id){
+  const c = dados.clientes.find(x=>x.id===id);
+  if(!c) return;
+  history.pushState({modal:true},'','#modal');
+  document.getElementById('clienteModal').classList.add('show');
+  document.getElementById('clienteModalTitle').innerText='Editar Cadastro';
+  document.getElementById('formClienteId').value=c.id;
+  document.getElementById('clienteNome').value=c.nome;
+  document.getElementById('clienteTipo').value=c.tipo;
+  document.getElementById('clienteTel').value=c.telefone||'';
+};
+window.excluirCliente=async function(id){
+  if(confirm('Excluir este cadastro?')){
+    try { await deleteDoc(doc(db,"clientes",id)); } catch(e){ alert('Erro: '+e.message); }
+  }
+};
+document.getElementById('formCliente').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const btn = document.getElementById('btnSalvarCliente');
+  btn.innerText='Salvando...'; btn.disabled=true;
+  const id = document.getElementById('formClienteId').value;
+  const obj = {
+    nome: document.getElementById('clienteNome').value,
+    tipo: document.getElementById('clienteTipo').value,
+    telefone: document.getElementById('clienteTel').value,
+    uid: usuarioLogado.uid
+  };
+  try {
+    if(id) await updateDoc(doc(db,"clientes",id), obj);
+    else await addDoc(collection(db,"clientes"), obj);
+    fecharModais();
+  } catch(err){ alert('Erro: '+err.message); }
+  finally { btn.innerText='Salvar'; btn.disabled=false; }
+});
+
+/* ============ FECHAR MODAIS ============ */
+window.fecharModais=function(){
+  ['vendaModal','gastoModal','produtoModal','socioModal','clienteModal'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.classList.remove('show');
+  });
+  if(location.hash==='#modal') history.back();
+};
+
+/* ============ PDFs ============ */
+window.gerarPDFTransacoes = function(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const nomeEmpresa = dados.config.nomeEmpresa || 'Gestor Financeiro Pro';
+  const dataIni = document.getElementById('filtroDataInicio').value;
+  const dataFim = document.getElementById('filtroDataFim').value;
+  let periodoLabel;
+  if(dataIni || dataFim){
+    const dIni = dataIni ? new Date(dataIni+'T00:00:00').toLocaleDateString('pt-BR') : 'início';
+    const dFim = dataFim ? new Date(dataFim+'T00:00:00').toLocaleDateString('pt-BR') : 'hoje';
+    periodoLabel = `${dIni} até ${dFim}`;
+  } else {
+    periodoLabel = filtroTempoGlobal === 'semana' ? 'Última semana'
+                 : filtroTempoGlobal === 'mes'    ? 'Mês atual' : 'Ano atual';
+  }
+  const filtroUni = document.getElementById('unidadeFilter').value;
+  const uniLabel = filtroUni === 'todas' ? 'Todas as unidades'
+    : (dados.unidades.find(u=>u.id===filtroUni)?.nome || '');
+
+  doc.setFontSize(18); doc.setFont(undefined,'bold');
+  doc.text(nomeEmpresa, 14, 22);
+  doc.setFontSize(10); doc.setFont(undefined,'normal');
+  doc.setTextColor(100);
+  doc.text(`${periodoLabel} • ${uniLabel} • Gerado em ${new Date().toLocaleDateString('pt-BR')}`, 14, 29);
+  doc.setTextColor(0);
+
+  const divisao = calcularDivisao();
+  const canvasPie = document.getElementById('pieChart');
+  const imgPie = canvasPie.toDataURL('image/png', 1.0);
+  const proporcao = canvasPie.width / canvasPie.height;
+  const larguraPdf = 90;
+  const alturaPdf = larguraPdf / proporcao;
+  doc.addImage(imgPie, 'PNG', 14, 36, larguraPdf, alturaPdf);
+
+  const mapa = {};
+  dadosPeriodo().filter(t=>t.tipo==='venda').forEach(t=>{
+    mapa[t.produto_nome] = (mapa[t.produto_nome]||0) + (t.quantidade||0);
+  });
+  const keysPdf = Object.keys(mapa);
+  const valuesPdf = Object.values(mapa);
+  let yLegenda = 42;
+  doc.setFontSize(10);
+  keysPdf.forEach((nome, idx)=>{
+    const hex = coresHex[idx % coresHex.length];
+    const r = parseInt(hex.substring(1,3),16);
+    const g = parseInt(hex.substring(3,5),16);
+    const b = parseInt(hex.substring(5,7),16);
+    doc.setFillColor(r,g,b);
+    doc.rect(112, yLegenda-3, 4, 4, 'F');
+    doc.text(`${nome}: ${valuesPdf[idx]} un`, 119, yLegenda);
+    yLegenda += 6;
+  });
+
+  let yR = Math.max(yLegenda + 8, 60);
+  doc.setFontSize(11); doc.setFont(undefined,'bold');
+  doc.setTextColor(16,185,129);
+  doc.text(`Vendas: R$ ${divisao.totalVendas.toFixed(2)}`, 112, yR);
+  doc.setTextColor(220,38,38);
+  doc.text(`Gastos: R$ ${divisao.totalSaidasOperacionais.toFixed(2)}`, 112, yR+7);
+  doc.setTextColor(59,130,246);
+  doc.text(`Lucro: R$ ${divisao.lucroOperacional.toFixed(2)}`, 112, yR+14);
+  doc.setTextColor(139,92,246);
+  doc.text(`Lucro Sócios: R$ ${divisao.totalLucroSocios.toFixed(2)}`, 112, yR+21);
+  doc.setTextColor(0);
+  doc.text(`Caixa Empresa: R$ ${calcularCaixaEmpresa().toFixed(2)}`, 112, yR+28);
+
+  let yDiv = Math.max(36+alturaPdf+10, yR+40);
+  if(yDiv > 240){ doc.addPage(); yDiv=20; }
+
+  if(dados.socios.length > 0){
+    doc.setFontSize(12); doc.setFont(undefined,'bold');
+    doc.text("Divisão do Lucro entre Sócios", 14, yDiv);
+    yDiv += 8;
+    doc.setFontSize(10);
+    dados.socios.forEach(s=>{
+      const info = divisao.porSocio[s.id];
+      doc.setFont(undefined,'normal');
+      doc.text(`${s.nome} (${info.percentual.toFixed(2)}%)`, 14, yDiv);
+      doc.setFont(undefined,'bold');
+      doc.text(`R$ ${info.valor.toFixed(2)}`, 190, yDiv, {align:'right'});
+      yDiv += 6;
+      if(yDiv > 275){ doc.addPage(); yDiv=20; }
+    });
+  }
+
+  const mapaUni = Object.fromEntries(dados.unidades.map(u=>[u.id,u.nome]));
+  const mapaCli = Object.fromEntries(dados.clientes.map(c=>[c.id,c.nome]));
+
+  const listaOrd = [...dadosPeriodo()].sort((a,b)=>new Date(a.data)-new Date(b.data));
+  const corpo = listaOrd.map(t=>{
+    const dataF = new Date(t.data+'T00:00:00').toLocaleDateString('pt-BR');
+    let tipo = '', desc = '';
+    if(t.tipo === 'venda'){
+      tipo = 'Venda';
+      desc = `${t.produto_nome} (${t.quantidade}un) ${mapaCli[t.cliente_id]||''}`;
+    } else if(t.tipo === 'compra_estoque'){
+      tipo = 'Compra';
+      desc = `${t.produto_nome} (${t.quantidade}un)`;
+    } else if(t.tipo === 'gasto'){
+      tipo = 'Gasto';
+      desc = t.descricao || '';
+    } else {
+      tipo = 'Sócio';
+      desc = t.socio_nome || '';
+    }
+    const sinal = t.tipo === 'venda' ? '+' : '-';
+    const valor = t.tipo==='venda' ? t.total : (t.tipo==='compra_estoque' ? t.total : t.valor);
+    return [dataF, tipo, desc, mapaUni[t.unidade_id]||'-', `${sinal} R$ ${(valor||0).toFixed(2)}`];
+  });
+
+  if(yDiv > 240){ doc.addPage(); yDiv=20; }
+  doc.setFontSize(12); doc.setFont(undefined,'bold');
+  doc.text("Lançamentos", 14, yDiv+8);
+
+  doc.autoTable({
+    startY: yDiv+12,
+    head: [['Data','Tipo','Descrição','Unidade','Valor']],
+    body: corpo,
+    theme: 'striped',
+    headStyles: { fillColor: [16,185,129] },
+    styles: { fontSize: 8 },
+    columnStyles: { 4: { halign: 'right' } },
+    didParseCell: function(data){
+      if (data.section === 'body' && data.column.index === 4) {
+        const txt = data.cell.text[0] || '';
+        if (txt.startsWith('-')) data.cell.styles.textColor = [220,38,38];
+        else data.cell.styles.textColor = [16,185,129];
+      }
+    }
+  });
+
+  const finalY = doc.lastAutoTable.finalY || yDiv;
+  doc.setLineWidth(0.5);
+  doc.line(70, finalY+30, 140, finalY+30);
+  doc.setFontSize(10); doc.setFont(undefined,'normal');
+  doc.text("Assinatura do Responsável", 105, finalY+37, {align:'center'});
+
+  doc.save(`Relatorio_${new Date().toISOString().slice(0,10)}.pdf`);
+};
+
+window.gerarPDFClientes = function(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const nomeEmpresa = dados.config.nomeEmpresa || 'Gestor Financeiro Pro';
+  const filtroTipo = document.getElementById('filtroCliTipo').value;
+  let filtroLabel = 'Todos';
+  if(filtroTipo === 'cliente') filtroLabel = 'Clientes';
+  else if(filtroTipo === 'fornecedor') filtroLabel = 'Fornecedores';
+  else if(filtroTipo === 'ambos') filtroLabel = 'Clientes e Fornecedores';
+
+  let lista = dados.clientes;
+  if(filtroTipo !== 'todos') lista = lista.filter(c=>c.tipo === filtroTipo);
+  lista.sort((a,b)=>a.nome.localeCompare(b.nome));
+
+  doc.setFontSize(18); doc.setFont(undefined,'bold');
+  doc.text(nomeEmpresa, 14, 22);
+  doc.setFontSize(12); doc.setFont(undefined,'normal');
+  doc.text(`Lista de ${filtroLabel}`, 14, 30);
+  doc.setFontSize(9);
+  doc.text(`Total: ${lista.length} • Gerado em ${new Date().toLocaleDateString('pt-BR')}`, 14, 36);
+
+  const tipoLabel = t => t==='cliente'?'Cliente':t==='fornecedor'?'Fornecedor':'Cliente e Fornecedor';
+  doc.autoTable({
+    startY: 44,
+    head: [['Nome','Tipo','Contato']],
+    body: lista.map(c=>[c.nome, tipoLabel(c.tipo), c.telefone||'-']),
+    theme: 'striped',
+    headStyles: { fillColor: [16,185,129] },
+    styles: { fontSize: 10 }
+  });
+  doc.save(`Clientes_${new Date().toISOString().slice(0,10)}.pdf`);
+};
+
+/* ============ PWA ============ */
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredPrompt=e;
+  document.getElementById('installAppBtn').style.display='block';
+});
+document.getElementById('installAppBtn').addEventListener('click',async()=>{
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    const {outcome}=await deferredPrompt.userChoice;
+    if(outcome==='accepted') document.getElementById('installAppBtn').style.display='none';
+    deferredPrompt=null;
+  }
+});
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').then(r=>r.update()).catch(()=>{});
+}
+
+initCharts();
+</script>
+</body>
+</html>
