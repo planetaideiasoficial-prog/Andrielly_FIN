@@ -287,20 +287,15 @@ label.field-label{display:block;font-size:.78rem;font-weight:600;color:var(--tex
         <div class="kpi-value" id="gastosTotal" style="color:var(--danger)">R$ 0,00</div>
         <div class="kpi-sub">Compras + despesas</div>
       </div>
-      <div class="kpi info">
-        <div class="kpi-label"><i class="fas fa-chart-line"></i> Lucro</div>
-        <div class="kpi-value" id="lucroTotal" style="color:var(--info)">R$ 0,00</div>
-        <div class="kpi-sub">Margem: <b id="margemTexto">0%</b></div>
-      </div>
-      <div class="kpi violet">
-        <div class="kpi-label"><i class="fas fa-users"></i> Sócios</div>
-        <div class="kpi-value" id="lucroSocios" style="color:var(--violet)">R$ 0,00</div>
-        <div class="kpi-sub">Distribuir no período</div>
-      </div>
-      <div class="kpi primary full">
+      <div class="kpi violet full">
+  <div class="kpi-label"><i class="fas fa-users"></i> Sócios</div>
+  <div class="kpi-value" id="lucroSocios" style="color:var(--violet)">R$ 0,00</div>
+  <div class="kpi-sub">Distribuir no período</div>
+</div>
+           <div class="kpi primary full">
         <div class="kpi-label"><i class="fas fa-vault"></i> Caixa da Empresa (Acumulado)</div>
         <div class="kpi-value" id="caixaEmpresa">R$ 0,00</div>
-        <div class="kpi-sub" id="caixaSub">Margem operacional de 5% sobre o custo</div>
+        <div class="kpi-sub" id="caixaSub">Total em caixa: R$ 0,00</div>
       </div>
     </div>
 
@@ -1017,8 +1012,6 @@ function atualizarDashboard(){
   document.getElementById('vendasTotal').innerText = fmt(totalVendas);
   document.getElementById('vendasQtd').innerText = vendas.length + (vendas.length===1?' venda':' vendas');
   document.getElementById('gastosTotal').innerText = fmt(totalSaidas);
-  document.getElementById('lucroTotal').innerText = fmt(lucro);
-  document.getElementById('margemTexto').innerText = margem.toFixed(1)+'%';
   document.getElementById('lucroSocios').innerText = fmt(divisao.totalLucroSocios);
 
   const caixa = calcularCaixaEmpresa();
@@ -1026,8 +1019,9 @@ function atualizarDashboard(){
   elCaixa.innerText = fmt(caixa);
   elCaixa.style.color = caixa >= 0 ? '#fff' : '#FCA5A5';
 
-  const saldoSocios = calcularSaldoSocios();
-  document.getElementById('caixaSub').innerText = `A pagar aos sócios: ${fmt(saldoSocios)}`;
+const saldoSocios = calcularSaldoSocios();
+const totalEmCaixa = caixa + saldoSocios;
+document.getElementById('caixaSub').innerText = `Total em caixa: ${fmt(totalEmCaixa)}`;
 
   // Pie chart - produtos mais vendidos
   const mapaProd = {};
@@ -1063,7 +1057,7 @@ function renderDivisaoLucro(){
     cont.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>Nenhum sócio cadastrado ainda</p><p style="font-size:.78rem;margin-top:4px">Adicione em Ajustes → Sócios</p></div>';
     return;
   }
-  const { porSocio, totalLucroSocios, somaPct } = calcularDivisao();
+const { porSocio, totalLucroSocios, totalEmpresa, totalCompras, totalGastosGerais, somaPct } = calcularDivisao();
 
   let html = '';
   if(Math.abs(somaPct-100) > 0.01){
@@ -1084,10 +1078,10 @@ function renderDivisaoLucro(){
     </div>`;
   }).join('');
 
-  html += `<div class="partner-row" style="background:var(--surface-2);border-radius:10px;margin-top:8px">
-    <div class="pr-name">Lucro Distribuível do Período</div>
-    <div class="pr-val" style="color:var(--violet)">${fmt(totalLucroSocios)}</div>
-  </div>`;
+html += `<div class="partner-row" style="background:var(--surface-2);border-radius:10px;margin-top:8px">
+  <div class="pr-name">Valor que ficou para a empresa</div>
+  <div class="pr-val" style="color:var(--primary-dark)">${fmt(totalEmpresa - totalCompras - totalGastosGerais)}</div>
+</div>`;
 
   cont.innerHTML = html;
 }
