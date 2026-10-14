@@ -3,7 +3,7 @@
    Versão: v1 (aumente a versão quando atualizar o app)
    ===================================================== */
 
-const CACHE_NAME = 'gestor-financeiro-pro-v2';
+const CACHE_NAME = 'gestor-financeiro-pro-v3';
 
 /* Arquivos que serão cacheados na instalação */
 const ARQUIVOS_CACHE = [
