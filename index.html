@@ -1210,11 +1210,80 @@ function atualizarAbaLancamentos(){
 window.excluirTransacao=async function(id){
   const t = dados.transacoes.find(x=>x.id===id);
   if(!t) return;
-  if(!confirm('Excluir este lançamento? O estoque não será revertido automaticamente.')) return;
-  try { await deleteDoc(doc(db, "transacoes", id)); }
-  catch(e){ alert('Erro: '+e.message); }
-};
 
+  /* ---------- Monta a mensagem conforme o tipo ---------- */
+  let mensagem = 'Excluir este lançamento?';
+  let reverterEstoque = false;
+
+  if(t.tipo === 'venda'){
+    mensagem = `Excluir esta venda?\n\n` +
+               `Produto: ${t.produto_nome}\n` +
+               `Quantidade: ${t.quantidade} un\n` +
+               `Valor: ${fmt(t.total)}\n\n` +
+               `✅ O estoque será DEVOLVIDO em ${t.quantidade} unidade(s).`;
+    reverterEstoque = true;
+
+  } else if(t.tipo === 'compra_estoque'){
+    const prod = dados.produtos.find(p => p.id === t.produto_id);
+
+    if(prod && prod.quantidade < t.quantidade){
+      mensagem = `⚠️ ATENÇÃO!\n\n` +
+                 `Esta compra adicionou ${t.quantidade} un de "${t.produto_nome}", ` +
+                 `mas o estoque atual é de apenas ${prod.quantidade} un.\n\n` +
+                 `Ao excluir, o estoque será ZERADO (não ficará negativo).\n\n` +
+                 `Deseja continuar?`;
+    } else {
+      mensagem = `Excluir esta compra?\n\n` +
+                 `Produto: ${t.produto_nome}\n` +
+                 `Quantidade: ${t.quantidade} un\n` +
+                 `Valor: ${fmt(t.total)}\n\n` +
+                 `⚠️ O estoque será REDUZIDO em ${t.quantidade} unidade(s).`;
+    }
+    reverterEstoque = true;
+
+  } else if(t.tipo === 'gasto'){
+    mensagem = `Excluir este gasto de ${fmt(t.valor)}?\n\n` +
+               `${t.descricao || ''}`;
+
+  } else if(t.tipo === 'pagamento_socio'){
+    mensagem = `Excluir este pagamento de ${fmt(t.valor)} para ${t.socio_nome}?\n\n` +
+               `💰 O valor voltará a ficar disponível para o sócio.`;
+  }
+
+  if(!confirm(mensagem)) return;
+
+  try {
+    /* ---------- 1. Reverter estoque (se aplicável) ---------- */
+    if(reverterEstoque && t.produto_id){
+      const prod = dados.produtos.find(p => p.id === t.produto_id);
+
+      if(prod){
+        const qtdMovimentada = parseInt(t.quantidade) || 0;
+        let novaQtd;
+
+        if(t.tipo === 'venda'){
+          // Devolve ao estoque
+          novaQtd = prod.quantidade + qtdMovimentada;
+        } else {
+          // Remove do estoque (trava em 0 para não ficar negativo)
+          novaQtd = Math.max(0, prod.quantidade - qtdMovimentada);
+        }
+
+        await updateDoc(doc(db, "produtos", t.produto_id), {
+          quantidade: novaQtd
+        });
+      }
+      /* Se o produto não existe mais, apenas ignora a reversão de estoque
+         e segue com a exclusão do lançamento. */
+    }
+
+    /* ---------- 2. Exclui o lançamento ---------- */
+    await deleteDoc(doc(db, "transacoes", id));
+
+  } catch(e){
+    alert('Erro ao excluir: ' + e.message);
+  }
+};
 /* ============ MODAL VENDA ============ */
 window.abrirModalVenda=function(){
   if(dados.produtos.length===0) return alert('Cadastre pelo menos um produto em Ajustes.');
